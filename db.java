@@ -19,14 +19,14 @@ public class db {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			String url = "jdbc:mysql://localhost:3306/Crawler?autoReconnectForPools=true&useSSL=false";
-			if(inputPass.length() == 0) {
+	/*		if(inputPass.length() == 0) {
 				inputPass = new String(console.readPassword(" Enter password: "));
-			}
+			}*/
 			//conn = DriverManager.getConnection(url, "root",  inputPass);
 			conn = ds.getConnection("root", inputPass);
-			System.out.println(" Connection established");
+		//	System.out.println(" Connection established");
 		} catch (SQLException passexc) {
-			System.out.println(" Invalid Password");
+	//		System.out.println(" Invalid Password");
 		} catch (NullPointerException nullexc) {
 			throw nullexc;
 		} catch (Exception e) {
