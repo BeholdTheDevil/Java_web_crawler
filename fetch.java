@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class fetch {
-	public static db data = new db();
+	public static db data = new db("");
 
 	public static void main(String[] args) throws SQLException, IOException {
 		data.runSql2("TRUNCATE Components;");
@@ -39,7 +39,7 @@ public class fetch {
 			}
 		}
 		if(validInput != true) {
-			System.out.println(" Invalid Input! Please use one of following options:");
+			System.out.println(" Please use one of following options:");
 			for(int j = 0; j < komplett_index.length; ++j) {
 				System.out.println(" " + komplett_index[j]);
 			}

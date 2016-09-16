@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class crawler {
-	public static db data = new db();
+	public static db data = new db("");
 
 	public static void main(String[] args) throws SQLException, IOException {
 		data.runSql2("TRUNCATE Record;");
@@ -34,7 +34,7 @@ public class crawler {
 							 "\r [#######   ]",		//7
 							 "\r [########  ]",		//8
 							 "\r [######### ]",		//9
-							 "\r [##########]\n"};	//10
+							 "\r [##########]"};	//10
 		int i = 0;
 
 		try {
@@ -46,6 +46,7 @@ public class crawler {
 				size = res.getInt(1);
 			}
 		 	incre = size/10;
+		 	int buffer = 0;
 	
 			while(result.next()) {
 				itemid_string = result.getString("komplett_artnum");
@@ -54,13 +55,16 @@ public class crawler {
 				if(i % incre == 0) {
 					if(size < 10) {
 						System.out.print(progress[i]);	
+					} else if(i/incre > 10) {
+						buffer = i%10;
+						System.out.print(progress[(i-buffer)/incre]);
 					} else {
 						System.out.print(progress[i/incre]);
 					}
 				}
 				++i;
 			}
-			System.out.print(progress[10]);
+			System.out.print(progress[10] + "\n");
 		} catch (NullPointerException e) {
 			System.out.println(" Invalid site");
 		}
@@ -88,8 +92,8 @@ public class crawler {
 				stmt.execute();
 				data.conn.commit();
 			}	
-		} catch(SQLException e) {
-			
-		}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
 	}
 }
