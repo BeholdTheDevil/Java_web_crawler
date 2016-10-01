@@ -26,7 +26,6 @@ public class db {
 			//conn = DriverManager.getConnection(url, "root",  inputPass);
 			ds.setConnectTimeout(0);
 			ds.setSocketTimeout(0);
-			ds.setReadTimeout(0);
 			conn = ds.getConnection("root", inputPass);
 		//	System.out.println(" Connection established");
 		} catch (SQLException passexc) {

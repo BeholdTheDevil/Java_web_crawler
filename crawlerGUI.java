@@ -22,14 +22,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.io.Console;
 import java.lang.ArrayIndexOutOfBoundsException;
 
 
@@ -47,8 +41,13 @@ public class crawlerGUI extends JFrame{
 	private static JRadioButton checkboxtwo, checkboxone;
 	private static StyledDocument styledoc;
 	private static Style style;
+	public static String version = "0.4";
 
-	public static void main(String[] args) throws SQLException, IOException{																
+	public static void main(String[] args) throws SQLException, IOException{
+		initUI();																
+	}
+
+	public static void initUI() throws SQLException, IOException{
 		initMainframe();												//Initialize Mainframe
 		mainframe.setContentPane(panel);	
 		panel.setBackground(Color.darkGray);
@@ -65,14 +64,7 @@ public class crawlerGUI extends JFrame{
    	    mainframe.pack();	
    	    mainframe.setLocationRelativeTo(null);		
 		mainframe.setVisible(true);										//Sets the frame visibility to true
-		try{
-			if(args[1].equals("debug")) {
-				//Close console
-			}
-		} catch(ArrayIndexOutOfBoundsException abe) {
-		}
 	}
-
 
 	public static void printline(String printString, int color) {
 		int[][] colors= {{0,0,0},
@@ -94,7 +86,7 @@ public class crawlerGUI extends JFrame{
 		sp.setBackground(new Color(230, 230, 230));
 		sp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		outputTextArea.setEditable(false);
-		outputTextArea.setText(" Welcome to the Java Web Crawler Graphical Interface Version 0.1\n");
+		outputTextArea.setText(" Welcome to the Java Web Crawler Graphical Interface Version " + (version) + "\n");
 		styledoc = outputTextArea.getStyledDocument();
 		c.insets = new Insets(20,20,10,20);
 		c.gridwidth = 5;
@@ -188,7 +180,7 @@ public class crawlerGUI extends JFrame{
 	}
 
 	public static void initMainframe() {
-		mainframe = new JFrame("JWCGUI0.2");  							//Initialize the frame with the title "JWCGUI" + "Version"
+		mainframe = new JFrame("JWCGUI " + version);  							//Initialize the frame with the title "JWCGUI" + "Version"
 		mainframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainframe.setSize(800, 200);
 		mainframe.setLayout(new GridBagLayout());
@@ -270,6 +262,8 @@ public class crawlerGUI extends JFrame{
 	}
 
 	public static void btnStartActionPerformed(ActionEvent e) throws SQLException, IOException, NullPointerException {
+		Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		mainframe.setCursor(cursor);
 		progressBar.setValue(0);
 		String password = new String (textPassword.getPassword());
 		String query = "SELECT komplett_artnum FROM Components;";			//SQL-Queries
@@ -281,6 +275,8 @@ public class crawlerGUI extends JFrame{
 		boolean error = false;
 		PreparedStatement stmt_insert = null;
 		if(password.length() > 0 && !password.equals("Password...")) {
+			outputTextArea.setText(null);
+			printline(" Welcome to the Java Web Crawler Graphical Interface Version " + version + "\n", 0);
 			btnUpdate.setEnabled(false);
 			btnStart.setEnabled(false);
 			textPassword.setEditable(false);
@@ -306,8 +302,8 @@ public class crawlerGUI extends JFrame{
 					} catch (java.net.UnknownHostException unknownHost){
 						printline((i+1) + " Invalid URL or no connection", 2);
 					}
-					++i;
 					data.conn.commit();
+					++i;
 					progressBar.setValue(i);
 				}
 				data.conn.commit();
@@ -315,6 +311,7 @@ public class crawlerGUI extends JFrame{
 
 			} catch(NullPointerException npe) {
 				printline("Connection to database could not be established", 2);
+				System.out.println(npe);
 				error = true;
 			} finally {
 				if(result != null) {
@@ -336,14 +333,18 @@ public class crawlerGUI extends JFrame{
 		btnUpdate.setEnabled(true);
 		btnStart.setEnabled(true);
 		textPassword.setEditable(true);
+		cursor = Cursor.getDefaultCursor();
+		mainframe.setCursor(cursor);
 	}
 
 	public static void btnUpdateActionPerformed(ActionEvent e) throws SQLException, IOException {
+		Cursor cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		mainframe.setCursor(cursor);
 		progressBar.setValue(0);
 		String password = new String (textPassword.getPassword());
 		if(password.length() > 0 && !password.equals("Password...")) {
 			outputTextArea.setText(null);
-			printline(" Welcome to the Java Web Crawler Graphical Interface Version 0.1\n", 0);
+			printline(" Welcome to the Java Web Crawler Graphical Interface Version " + version + "\n", 0);
 			boolean validInput = false;
 			String site = "https://www.komplett.se/category/";
 			String hits = "";
@@ -386,9 +387,12 @@ public class crawlerGUI extends JFrame{
 				} catch (NumberFormatException nfe) {
 
 				}
+				printline("Process finished\nCheck database for output", 1);
 			} else {
 			printline(" Invalid password", 2);
 		}
+		cursor = Cursor.getDefaultCursor();
+		mainframe.setCursor(cursor);
 		btnUpdate.setEnabled(true);
 		btnStart.setEnabled(true);
 		textPassword.setEditable(true);
@@ -406,7 +410,7 @@ public class crawlerGUI extends JFrame{
 	public static void getArtNums(String URL, db data, int hits) throws SQLException, IOException{
 		int i = 0;
 		int j = 0;
-		String sql_insert = "INSERT INTO `Crawler`.`Components` (`komplett_artnum`) VALUES (?);";
+		String sql_insert = "INSERT INTO `Crawler`.`Components` (`komplett_artnum`, `type`) VALUES (?, ?);";
 		Document doc = null;
 		Elements elements = null;
 		PreparedStatement stmt_insert = null;
@@ -429,6 +433,7 @@ public class crawlerGUI extends JFrame{
 				Elements link = doc.select("a.product-link.image-container[href]").eq(i);
 				String artNum = link.attr("href");
 				stmt_insert.setString(1, artNum.substring(9,16));
+				stmt_insert.setString(2, (String)selectBox.getSelectedItem());
 				printline((i+1) + " " + artNum.substring(9,16), 0);
 				stmt_insert.execute();
 				++i;
@@ -450,7 +455,7 @@ public class crawlerGUI extends JFrame{
 		ResultSet rs = data.runSql(sql_one);
 		Document doc = null;
 		PreparedStatement stmt = null;
-		sql_one = "INSERT INTO `Crawler`.`Record` (`URL`, `price`) VALUES (?, ?)";
+		sql_one = "INSERT INTO `Crawler`.`Record` (`URL`, `price`, `name`) VALUES (?, ?, ?)";
 		data.conn.setAutoCommit(false);
 		try {
 			if(!rs.next()) {
@@ -460,8 +465,10 @@ public class crawlerGUI extends JFrame{
 				doc = Jsoup.connect(URL).get();
 
 				String price = doc.select("span.product-price-now").first().text();
+				String name = doc.select("h1.product-main-info-webtext1").first().text();
 
 				stmt.setString(2, price);
+				stmt.setString(3, name);
 				stmt.execute();
 				return price;
 			}	
